@@ -1,41 +1,26 @@
-from flask import Flask, render_template, request
+import streamlit as st
 import numpy as np
 import joblib
 
-app = Flask(__name__)
-
+# Load model
 model = joblib.load("model.pkl")
-@app.route('/')
-def home():
-    return render_template("index.html")
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        data = [
-            float(request.form['preg']),
-            float(request.form['glucose']),
-            float(request.form['bp']),
-            float(request.form['skin']),
-            float(request.form['insulin']),
-            float(request.form['bmi']),
-            float(request.form['dpf']),
-            float(request.form['age']),
-            float(request.form['hypertension']),
-            float(request.form['heart']),
-            float(request.form['smoking'])
-        ]
+st.title("Diabetes Prediction App")
 
-        input_data = np.array([data])
+pregnancies = st.number_input("Pregnancies")
+glucose = st.number_input("Glucose")
+bp = st.number_input("Blood Pressure")
+skin = st.number_input("Skin Thickness")
+insulin = st.number_input("Insulin")
+bmi = st.number_input("BMI")
+dpf = st.number_input("Diabetes Pedigree Function")
+age = st.number_input("Age")
 
-        prediction = model.predict(input_data)[0]
+if st.button("Predict"):
+    data = np.array([[pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]])
+    prediction = model.predict(data)
 
-        result = "Diabetes ⚠️" if prediction == 1 else "No Diabetes ✅"
-
-        return render_template("index.html", prediction_text=result)
-
-    except Exception as e:
-        return f"Error: {str(e)}"
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    if prediction[0] == 1:
+        st.error("Diabetic")
+    else:
+        st.success("Not Diabetic")
